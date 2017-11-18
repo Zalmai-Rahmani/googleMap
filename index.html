@@ -1,0 +1,143 @@
+<!DOCTYPE html >
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Using MySQL and PHP with Google Maps</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="map"></div>
+
+    <script>
+      var customLabel = {
+        Planned: {
+          label: 'Pl'
+        },
+        Submitted: {
+          label: 'Su'
+        },
+        Approved: {
+          label: 'Ap'
+        },Awarded: {
+          label: 'Aw'
+        },Completed: {
+          label: 'Co'
+        }
+      };
+
+        function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+          center: new google.maps.LatLng(34.543896, 69.160652),
+          zoom: 6
+        });
+        var infoWindow = new google.maps.InfoWindow;
+
+          // Change this depending on the name of your PHP or XML file
+          downloadUrl('map.php', function(data) {
+            var xml = data.responseXML;
+            var markers = xml.documentElement.getElementsByTagName('marker');
+            Array.prototype.forEach.call(markers, function(markerElem) {
+              var name = markerElem.getAttribute('name');
+              var code = markerElem.getAttribute('code');
+              var area_before = markerElem.getAttribute('area_before');
+              var area_after = markerElem.getAttribute('area_after');
+              var householde = markerElem.getAttribute('householde');
+              var status = markerElem.getAttribute('status');
+              var point = new google.maps.LatLng(
+                  parseFloat(markerElem.getAttribute('lat')),
+                  parseFloat(markerElem.getAttribute('lng')));
+
+              var infowincontent = document.createElement('div');
+              var strong = document.createElement('strong');
+              strong.textContent = name
+              infowincontent.appendChild(strong);
+              infowincontent.appendChild(document.createElement('br'));
+
+			  var text = document.createElement('text');
+              text.textContent = 'Code: ';
+              infowincontent.appendChild(text);
+
+              var text = document.createElement('text');
+              text.textContent = code
+              infowincontent.appendChild(text);
+			  infowincontent.appendChild(document.createElement('br'));
+
+			  var text = document.createElement('text');
+              text.textContent = 'Area Before(ha): ';
+              infowincontent.appendChild(text);
+			  
+			  var text = document.createElement('text');
+              text.textContent = area_before
+              infowincontent.appendChild(text);
+			  infowincontent.appendChild(document.createElement('br'));
+
+			  var text = document.createElement('text');
+              text.textContent = 'Area After(ha): ';
+              infowincontent.appendChild(text);
+			  
+			  var text = document.createElement('text');
+              text.textContent = area_after
+              infowincontent.appendChild(text);
+			  infowincontent.appendChild(document.createElement('br'));
+			  
+			  var text = document.createElement('text');
+              text.textContent = 'Householde: ';
+              infowincontent.appendChild(text);
+			  
+			  var text = document.createElement('text');
+              text.textContent = householde
+              infowincontent.appendChild(text);
+			  infowincontent.appendChild(document.createElement('br'));
+			  
+              var icon = customLabel[status] || {};
+              var marker = new google.maps.Marker({
+                map: map,
+                position: point,
+                label: icon.label
+              });
+              marker.addListener('click', function() {
+                infoWindow.setContent(infowincontent);
+                infoWindow.open(map, marker);
+              });
+            });
+          });
+        }
+
+
+
+      function downloadUrl(url, callback) {
+        var request = window.ActiveXObject ?
+            new ActiveXObject('Microsoft.XMLHTTP') :
+            new XMLHttpRequest;
+
+        request.onreadystatechange = function() {
+          if (request.readyState == 4) {
+            request.onreadystatechange = doNothing;
+            callback(request, request.status);
+          }
+        };
+
+        request.open('GET', url, true);
+        request.send(null);
+      }
+
+      function doNothing() {}
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdPXiSv2MpEbWwEsy_XW1Zs94w4l537Ro&callback=initMap">
+    </script>
+  </body>
+</html>
